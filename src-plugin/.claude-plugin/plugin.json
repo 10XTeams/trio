@@ -1,0 +1,5 @@
+{
+  "name": "trio",
+  "version": "1.7.0",
+  "description": "Trio workflow for Claude Code: 9 skills + 14 agents that orchestrate PRD/TDD/Test-Case authoring, subsprint planning/execution, and ADO sync — plus a local Markdown wiki viewer/editor for the current folder."
+}

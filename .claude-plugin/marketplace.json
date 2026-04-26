@@ -1,0 +1,13 @@
+{
+  "name": "trio",
+  "owner": {
+    "name": "eddyyin"
+  },
+  "plugins": [
+    {
+      "name": "trio",
+      "source": "./src-plugin",
+      "description": "Trio workflow: 9 skills + 14 agents for PRD/TDD/test-case authoring, subsprint planning/execution, and ADO sync, plus a local Markdown wiki viewer/editor."
+    }
+  ]
+}

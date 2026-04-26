@@ -1,0 +1,5 @@
+skill/runtime/trio.pid
+skill/runtime/trio.log
+skill/runtime/chrome-profile/
+__pycache__/
+*.pyc

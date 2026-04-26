@@ -22,9 +22,7 @@ Trio 不是又一个 "更聪明的 prompt"，而是一组**强约束的协作流
 
 6. **测试执行把上下文打爆。** 一个 agent 跑 30+ 条用例，Playwright stdio 断连、context window 溢出、跑到一半就糊涂了，最后还是要人来兜底。
 
-7. **Bug 三角分类被跳过。** `bugs.json` 里堆着一堆 `decision: Pending`，没人去逐条标记 Accepted/Rejected/Duplicate/WontFix，下游修复流程根本无法路由。
-
-8. **测试规格被悄悄削弱。** 原本断言 "登录失败时显示账号被禁用"，后来某次重写之后变成 "返回任何 4xx 即可"。回归测试还在绿，但实际保护已经没了。
+7. **测试规格被悄悄削弱。** 原本断言 "登录失败时显示账号被禁用"，后来某次重写之后变成 "返回任何 4xx 即可"。回归测试还在绿，但实际保护已经没了。
 
 Trio 针对的是这些**流程问题**，不是 "让 AI 更聪明"。
 
@@ -40,7 +38,6 @@ Trio 针对的是这些**流程问题**，不是 "让 AI 更聪明"。
 | 新对话从零开始 | 三大支柱 + `trio/` 里的迭代历史就是 AI 的冷启动地图；新会话直接读这些文件 |
 | 大计划悄悄缩水 | 每个 subsprint plan 顶部都是 **Execution Checklist**（Execute Coding / Update Docs / Update Test Case），每个框由唯一一个 skill 负责翻 `[x]`，N/A 必须写明原因 |
 | 测试执行打爆上下文 | `/trio:test-management` 一次只派一个子模块给执行 agent，每个子模块结果立刻落盘成 `partials/<sub#>.json`，主控随时可以剪枝内存 |
-| Pending bug 不被分类 | `/trio:next` 的 P0.5 分支：只要最近 `bugs.json` 还有 `Pending`，就强制先去 Trio Stage 浏览器界面逐条决策，否则不让进入修复流程 |
 | 规格被悄悄削弱 | TC patch 操作集合是 strengthen-only：`add-verification` / `add-forbidden-state` / `tighten-precondition`；任何 "删条目 / 放宽断言" 在 manifest 校验阶段就被拒绝 |
 
 ---

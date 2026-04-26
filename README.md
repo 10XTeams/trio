@@ -99,13 +99,13 @@ Trio 把项目分成三个并行追踪的桶：
 ## Execution Checklist
 
 - [ ] **Execute Coding** — `/trio:subsprint-runner` (applies code edits in place)
-- [ ] **Update Docs** — `/trio:subsprint-runner` (applies doc edits in place)
+- [ ] **Update Docs** — `/trio:subsprint-sync` (applies doc edits in place)
 - [ ] **Update Test Case** — `/trio:tc-management` (patch or audit path)
 ```
 
 规则：
 
-- 每个框**只有一个 skill 能翻**——runner 翻前两个，tc-management 翻第三个。
+- 每个框**只有一个 skill 能翻**——runner 翻第一个（代码），sync 翻第二个（文档），tc-management 翻第三个（测试用例）。
 - 翻完要写明 trailer：`— completed YYYY-MM-DD HH:MM by <skill>`。
 - `[x] N/A` 必须附一句原因，且不能再被翻回 `[ ]`。
 
@@ -220,20 +220,19 @@ Validated:
 Plan ready: trio/subsprint/1-0426-aurora/1-subsprint-plan.md
 
 Recommended sequence:
-  1. /trio:subsprint-runner 1   — 应用 code + doc 改动
-  2. /trio:subsprint-sync 1     — 然后回写 14 条 TC patch
+  1. /trio:subsprint-runner 1   — 应用 code 改动
+  2. /trio:subsprint-sync 1     — 同步 doc 改动 + 回写 14 条 TC patch
 ```
 
-### 4.3 跑 runner，把计划落地
+### 4.3 跑 runner，把代码落地
 
-`/trio:subsprint-runner 1` 按 task 顺序把改动写进 `code/` 和 `docs/`，每完成一个 task 立刻本地 verify：
+`/trio:subsprint-runner 1` 按 task 顺序把代码改动写进 `code/`，每完成一个 task 立刻本地 verify：
 
 ```
 Subsprint 1 (1-0426-aurora) executing...
 
 [Task 1/7] Auth · register endpoint scaffold
   Code: code/src/auth/register.ts, code/src/auth/schema.ts
-  Doc:  (none)
   → applied
   → verify: cd code && pnpm test auth/register → 4/4 PASS
   ✓ Task 1 done
@@ -249,7 +248,7 @@ Subsprint 1 (1-0426-aurora) executing...
 
 Checklist updated:
   - [x] Execute Coding — completed 2026-04-26 14:32 by trio:subsprint-runner
-  - [x] Update Docs    — completed 2026-04-26 14:32 by trio:subsprint-runner
+  - [ ] Update Docs    — pending
   - [ ] Update Test Case — pending
 
 下一步：/trio:subsprint-sync 1
@@ -257,15 +256,21 @@ Checklist updated:
 
 任何一个 task 的 verify 失败都会**当场停下**——不会带着红条跑完七步还假装一切顺利。
 
-### 4.4 跑 sync，回写测试用例
+### 4.4 跑 sync，同步文档 + 回写测试用例
 
-`/trio:subsprint-sync 1` 调 `/trio:tc-management`（patch 路径），按 plan 里的 Test Case Impact 给受影响的 TC 加严：
+`/trio:subsprint-sync 1` 干两件事：先把 plan 里 doc 改动应用到 `docs/`，再调 `/trio:tc-management`（patch 路径）按 Test Case Impact 给受影响的 TC 加严：
 
 ```
-Subsprint 1 sync · dispatching trio:tc-management (patch path)
+Subsprint 1 sync starting...
 
-Manifest: trio/subsprint/1-0426-aurora/tc-patches.yml
-14 patches → 14 TCs
+[1/2] Docs sync
+  Doc paths: docs/PRD/1.Auth/1.1.register.md, docs/TDD/2.PPT/2.1.upload.md
+  → applied (2 files)
+  ✓ Update Docs flipped
+
+[2/2] TC sync · dispatching trio:tc-management (patch path)
+  Manifest: trio/subsprint/1-0426-aurora/tc-patches.yml
+  14 patches → 14 TCs
 
   TC-1.1-001 ← add-verification        ✓
   TC-1.1-002 ← add-forbidden-state     ✓
@@ -275,7 +280,7 @@ Manifest: trio/subsprint/1-0426-aurora/tc-patches.yml
 
 Checklist updated:
   - [x] Execute Coding
-  - [x] Update Docs
+  - [x] Update Docs    — completed 2026-04-26 14:48 by trio:subsprint-sync
   - [x] Update Test Case — completed 2026-04-26 14:48 by trio:tc-management
 
 Subsprint 1 fully synced.
@@ -342,8 +347,8 @@ triage 完（这条 bug 决定 Accepted），再问 `/trio:next` → 路由到 *
 | `/trio:tc-management` | 测试用例编排（audit + patch 双路径） | TC 文件、test-script-mapping |
 | `/trio:test-management` | 测试执行（按 sub-module 分批 + 落盘 partials） | `report.md`、`bugs.json`、screenshots |
 | `/trio:subsprint-planner` | 子冲刺规划（bugfix / gap / fresh） | `<n>-subsprint-plan.md` |
-| `/trio:subsprint-runner` | 子冲刺执行 | 在 `code/` `docs/` 内联改动 + 翻清单 |
-| `/trio:subsprint-sync` | 子冲刺收尾（TC 回写） | TC patch / 新增 + 翻 `Update Test Case` |
+| `/trio:subsprint-runner` | 子冲刺执行（代码） | 在 `code/` 内联改动 + 翻 `Execute Coding` |
+| `/trio:subsprint-sync` | 子冲刺收尾（文档 + TC） | 在 `docs/` 内联改动、TC patch / 新增 + 翻 `Update Docs` 和 `Update Test Case` |
 | `/trio:next` | 下一步建议（只读、只推荐） | 控制台优先级建议 |
 
 ## 六、Agents 一览

@@ -7,7 +7,7 @@
     {
       "name": "trio",
       "source": "./src-plugin",
-      "description": "Trio workflow: 9 skills + 14 agents for PRD/TDD/test-case authoring, subsprint planning/execution, and ADO sync, plus a local Markdown wiki viewer/editor."
+      "description": "Trio workflow: 9 skills + 12 agents for PRD/TDD/test-case authoring and subsprint planning/execution, plus a local Markdown wiki viewer/editor."
     }
   ]
 }

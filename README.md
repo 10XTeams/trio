@@ -106,67 +106,195 @@ Trio 把项目分成三个并行追踪的桶：
 
 ## 四、主流程
 
+整个 Trio 工作流就是一个循环：**`/trio:next` 告诉你下一步 → 你跑被推荐的 skill → 产物落到 `docs/` `code/` `trio/` → 再问 `/trio:next`**。
+
+下面用一个具体场景走一遍——你刚把 PRD/TDD/TC 都写完了，`code/` 还是空仓库，第一步去问 Trio：
+
+### 4.1 起手：跑 `/trio:next` 看下一步
+
 ```
-                ┌──────────────────────────────────────────┐
-                │  /trio:init-project                      │
-                │   → docs/, code/, trio/ skeleton         │
-                │   → tech-stack.md (+ code-structure.md)  │
-                └────────────────────┬─────────────────────┘
-                                     │
-                                     ▼
-            ┌────────────────────────────────────────────┐
-            │  三大支柱构建（顺序敏感）                   │
-            │                                            │
-            │  /trio:prd-management   → PRD              │
-            │  /trio:tdd-management   → TDD              │
-            │  /trio:tc-management    → Test-Case        │
-            └────────────────────┬───────────────────────┘
-                                 │
-                                 ▼
-            ┌────────────────────────────────────────────┐
-            │  /trio:test-management                     │
-            │   一次一个 sub-module，落 partials/         │
-            │   汇总 → report.md + bugs.json             │
-            └────────────────────┬───────────────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              ▼                  ▼                  ▼
-       Trio Stage           子冲刺循环          /trio:next
-   /trio:view-document       (见下方)          下一步建议
-   逐条决策 bugs.json
-                                 │
-                                 ▼
-            ┌────────────────────────────────────────────┐
-            │  Subsprint 三件套                           │
-            │                                            │
-            │  /trio:subsprint-planner   规划             │
-            │     ├─ [2] bugfix  (从 test report)         │
-            │     ├─ [3] gap     (从 URS-PRD gap)         │
-            │     └─ [4] fresh   (新功能)                 │
-            │  /trio:subsprint-runner    执行             │
-            │  /trio:subsprint-sync      TC 回写          │
-            └────────────────────────────────────────────┘
+Trio — 下一步建议（当前时间 2026-04-26）
+
+最近状态：
+  - code/ 源文件数：0
+  - URS：存在
+  - PRD-Overview：存在
+  - PRD / TDD / Test-Case 模块数：5 / 5 / 5
+    · docs/PRD/        — 5 模块 / 24 子模块 / 29 PRD 文件 ✓
+    · docs/TDD/        — 5 模块 / 34 TDD 文件 + tech-stack + code-structure ✓
+    · docs/Test-Case/  — 5 模块 / 332 TCs ✓
+  - 最新测试报告：（暂无）
+  - 最新 subsprint：（暂无）
+
+主建议（P4）：
+  三大支柱齐全，code/ 还是空仓库——可以起第一个 iteration 把 P0 TCs（137 条）
+  反推成代码任务。建议从 M1 用户注册登录 + M2 PPT 上传/转图入手，作为最薄的
+  端到端切片。
+  → 运行 /trio:subsprint-planner
+  → 关键参数：source=fresh
+
+备选：
+  [A] /trio:tdd-management → [3] regenerate code-structure —— 等代码出来再跑
+  [B] /trio:test-management —— 现在 332 TCs 全是 BLOCKED，没意义
 ```
 
-### 4.1 子冲刺生命周期（核心闭环）
+`/trio:next` **从不替你按 enter**——它只读、只建议，按下面这张路由表挑分支：
 
-每次代码改动都走这个三步：
+| 你看到的状态 | `/trio:next` 通常会推 |
+|-------------|----------------------|
+| `code/` 有源码但 PRD 整体缺失 | **P0** — `/trio:prd-management` |
+| PRD 在但 TDD 缺 | **P0** — `/trio:tdd-management` |
+| 最新 `bugs.json` 有 Pending | **P0.5** — `/trio:view-document`（Trio Stage 浏览器三角分类） |
+| 有 Accepted 但还没修的 bug | **P1** — `/trio:subsprint-planner` → `[2] bugfix` |
+| URS↔PRD / PRD↔TDD / PRD↔TC 有缺口 | **P3** — 对应 management skill |
+| 全部干净 | **P4** — 问要不要起新功能 |
 
-1. **`/trio:subsprint-planner`** — 选源（bugfix / gap / fresh），生成 `<n>-subsprint-plan.md`，自带 front-matter + Execution Checklist。**只写计划，不动代码。**
-2. **`/trio:subsprint-runner`** — 把每个 task 的 code path 改动应用到 `code/`，doc path 改动应用到 `docs/`，本地 verify 一遍，翻 `Execute Coding` / `Update Docs` 两个框。
-3. **`/trio:subsprint-sync`** — 跑 `/trio:tc-management` 把测试用例回写（patch 路径 or audit 路径），翻 `Update Test Case` 框。
+### 4.2 选项 1 → 起第一个 fresh subsprint（init 阶段）
 
-### 4.2 "下一步该干啥" — `/trio:next`
+跑 `/trio:subsprint-planner`，选 `[4] Brand-new (fresh) plan`。fresh 是两步——先 init 给你骨架，你填好之后再 finalize：
 
-不知道下一步该做什么时，跑 `/trio:next`。它读项目最新状态，按这个优先级给建议：
+```
+Plan source: Fresh
+Phase: init
+Allocated: trio/subsprint/1-0426-aurora/
 
-- **P0** — `code/` 有源码但 PRD/TDD/Test-Case 任一桶整体缺失 → 先补支柱
-- **P0.5** — 最新 `bugs.json` 还有 `Pending` 决策 → 先去 Trio Stage 三角分类
-- **P1** — 有未闭环的 bug → `/trio:subsprint-planner` bugfix
-- **P3** — 文档对齐有缺口（URS↔PRD / PRD↔TDD / PRD↔TC） → 对应 management skill
-- **P4** — 全部干净 → 问要不要起新功能
+Created:
+  trio/subsprint/1-0426-aurora/1-subsprint-plan.md   (skeleton, <!-- TODO --> 占位)
+  trio/subsprint/1-0426-aurora/notes/                (你把参考资料丢这里)
 
-`/trio:next` 是**只读 + 只建议**——它从不替你按 enter。
+下一步：编辑 1-subsprint-plan.md，把这几节填好——
+  - # Goal
+  - # Scope（in / out-of-scope）
+  - # Tasks（每个 task 的 Code Paths、Verification）
+  - # Test Case Impact（这次改动会影响哪些 TC）
+
+填完再跑一次 `/trio:subsprint-planner` → [4]，进入 finalize。
+```
+
+填完之后再跑 `/trio:subsprint-planner [4]`：
+
+```
+Phase: finalize
+Source folder: trio/subsprint/1-0426-aurora/
+
+Validated:
+  - Front-matter ✓ (source: fresh, subsprint_id: 1, docs_changes_expected: true)
+  - Execution Checklist ✓ (3 boxes initialized)
+  - 7 Tasks parsed
+  - Test Case Impact: 14 TCs scoped (M1: 8, M2: 6)
+
+Plan ready: trio/subsprint/1-0426-aurora/1-subsprint-plan.md
+
+Recommended sequence:
+  1. /trio:subsprint-runner 1   — 应用 code + doc 改动
+  2. /trio:subsprint-sync 1     — 然后回写 14 条 TC patch
+```
+
+### 4.3 跑 runner，把计划落地
+
+`/trio:subsprint-runner 1` 按 task 顺序把改动写进 `code/` 和 `docs/`，每完成一个 task 立刻本地 verify：
+
+```
+Subsprint 1 (1-0426-aurora) executing...
+
+[Task 1/7] Auth · register endpoint scaffold
+  Code: code/src/auth/register.ts, code/src/auth/schema.ts
+  Doc:  (none)
+  → applied
+  → verify: cd code && pnpm test auth/register → 4/4 PASS
+  ✓ Task 1 done
+
+[Task 2/7] Auth · login endpoint
+  ...
+  ✓ Task 2 done
+
+...
+
+[Task 7/7] PPT · thumbnail conversion worker
+  ✓ Task 7 done
+
+Checklist updated:
+  - [x] Execute Coding — completed 2026-04-26 14:32 by trio:subsprint-runner
+  - [x] Update Docs    — completed 2026-04-26 14:32 by trio:subsprint-runner
+  - [ ] Update Test Case — pending
+
+下一步：/trio:subsprint-sync 1
+```
+
+任何一个 task 的 verify 失败都会**当场停下**——不会带着红条跑完七步还假装一切顺利。
+
+### 4.4 跑 sync，回写测试用例
+
+`/trio:subsprint-sync 1` 调 `/trio:tc-management`（patch 路径），按 plan 里的 Test Case Impact 给受影响的 TC 加严：
+
+```
+Subsprint 1 sync · dispatching trio:tc-management (patch path)
+
+Manifest: trio/subsprint/1-0426-aurora/tc-patches.yml
+14 patches → 14 TCs
+
+  TC-1.1-001 ← add-verification        ✓
+  TC-1.1-002 ← add-forbidden-state     ✓
+  TC-1.2-007 ← tighten-precondition    ✓
+  ...
+  TC-2.3-006 ← add-verification        ✓
+
+Checklist updated:
+  - [x] Execute Coding
+  - [x] Update Docs
+  - [x] Update Test Case — completed 2026-04-26 14:48 by trio:tc-management
+
+Subsprint 1 fully synced.
+```
+
+到这步整个清单都是 `[x]`——这个 subsprint **机械意义上完成了**，不是嘴上说说。
+
+### 4.5 跑测试，出 bug → 回到循环
+
+代码已经落地，`/trio:test-management` 一次派一个子模块给执行 agent：
+
+```
+Selected: 1.1, 1.2, 2.1
+Report folder: docs/Test-Report/1-0426-aurora/
+
+[1/3] sub-module 1.1 — 14 cases
+  → wrote partials/1.1.json (14 PASS / 0 FAIL)
+
+[2/3] sub-module 1.2 — 13 cases
+  → TC-1.2-007 FAIL: 禁用账号居然路由到 /dashboard
+  → wrote partials/1.2.json (12 PASS / 1 FAIL)
+
+[3/3] sub-module 2.1 — 11 cases
+  → wrote partials/2.1.json (11 PASS / 0 FAIL)
+
+Assembled:
+  docs/Test-Report/1-0426-aurora/report.md
+  docs/Test-Report/1-0426-aurora/bugs.json   (1 bug, decision: Pending)
+
+This run found 1 failure. Run /trio:next 看下一步。
+```
+
+再跑一次 `/trio:next`，因为 `bugs.json` 里有 `Pending`，路由到 **P0.5**：
+
+```
+主建议（P0.5）：
+  docs/Test-Report/1-0426-aurora/bugs.json 里有 1/1 条 bug 处于 Pending。
+  → 运行 /trio:view-document（Trio Stage）
+  → 在浏览器里打开 bugs.json，把那条 bug 的 decision 从 Pending 改成
+    Accepted / Rejected / Duplicate / WontFix
+  完成后再跑 /trio:stop 关掉 Trio Stage，然后重新问 /trio:next。
+```
+
+triage 完（这条 bug 决定 Accepted），再问 `/trio:next` → 路由到 **P1**：
+
+```
+主建议（P1）：
+  最新报告 1-0426-aurora 有 1 条 Accepted bug 还未闭环。
+  → 运行 /trio:subsprint-planner → [2] bugfix
+  → 自动选最新 test report 作为来源
+```
+
+—— 然后回到 4.2/4.3/4.4，每条 bug 用一个 subsprint 闭环。**整个工作流不需要你记顺序，`/trio:next` 永远告诉你站在哪一步。**
 
 ---
 

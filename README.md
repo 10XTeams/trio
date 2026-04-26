@@ -51,7 +51,54 @@ Trio 针对的是这些**流程问题**，不是 "让 AI 更聪明"。
 
 ---
 
-## 三、核心机制
+## 三、个人版 vs 企业版
+
+这个仓库是 **个人版（Personal Edition）**——开源（PolyForm Noncommercial 1.0.0），适合个人 / 研究 / 教学等非商业用途。
+
+**企业版（Enterprise Edition）** 在个人版基础上面向团队协作场景额外提供三块能力，需要单独商业授权。
+
+| 能力 | 个人版 | 企业版 |
+|------|:------:|:------:|
+| 三大支柱 + subsprint 闭环（PRD / TDD / Test-Case） | ✓ | ✓ |
+| `/trio:next` 智能路由 + Trio Stage 浏览器编辑器 | ✓ | ✓ |
+| 测试用例 strengthen-only patch + 落盘 partials | ✓ | ✓ |
+| Azure DevOps 任务与缺陷双向打通 | — | ✓ |
+| Git Worktree 隔离 + Diff 校验 | — | ✓ |
+| 合回团队分支时自动总结迭代内容 | — | ✓ |
+
+### 1）Azure DevOps 任务 / 缺陷打通
+
+把 ADO 上的 Work Item 直接拉进 Trio 的工作流：
+
+- **拉取**：`/trio:subsprint-planner` 多一种来源 `ado`——按 iteration / 标签从 DevOps 取任务和缺陷，自动生成 subsprint plan，task 与 Work Item 一一对应。
+- **回写**：runner 完成代码、sync 完成文档与测试用例之后，自动把对应 Work Item 的状态推进到 `Resolved` / `Closed`，省掉手工同步。
+- **双向引用**：plan 文件里每个 task 带 ADO Work Item ID，DevOps 评论里也会自动出现 plan 文件的反链。
+
+### 2）Git Worktree 隔离 + Diff 校验
+
+每次 subsprint 执行不在 `code/` `docs/` 主目录上动手，而是通过 Git Worktree 拉一份隔离副本：
+
+- runner 在隔离的 worktree 里执行，**主目录全程干净**。
+- 执行完成后产出 `code-diff.md` / `docs-diff.md`，与 plan 里声明的 Code Paths / Doc Paths 做交叉校验——任何超出计划范围的改动会被高亮，等你确认。
+- 点头之后才把 worktree 合回主分支；不满意 → 直接丢弃 worktree 重做，**`code/` `docs/` 从未被污染**，不存在"改错了不知道怎么恢复"的尴尬。
+
+### 3）合回团队分支时自动总结
+
+当 subsprint 通过 worktree 校验、准备并入团队主分支时，基于 plan + diff + 测试报告自动生成迭代摘要：
+
+- 每个 task 一段 changelog
+- 影响到的模块清单
+- 测试结果摘要（通过率、新增 TC、回归发现）
+
+可直接贴进 PR 描述、ADO 评论、站会更新——省掉人工写 release note 的时间。
+
+### 想用企业版？
+
+联系仓库维护者（[@10XTeams](https://github.com/10XTeams)）获取商业授权与交付包。
+
+---
+
+## 四、核心机制
 
 ### 3.1 三大支柱（Three Pillars）
 
@@ -113,7 +160,7 @@ Trio 把项目分成三个并行追踪的桶：
 
 ---
 
-## 四、主流程
+## 五、主流程
 
 整个 Trio 工作流就是一个循环：**`/trio:next` 告诉你下一步 → 你跑被推荐的 skill → 产物落到 `docs/` `code/` `trio/` → 再问 `/trio:next`**。
 
@@ -337,7 +384,7 @@ triage 完（这条 bug 决定 Accepted），再问 `/trio:next` → 路由到 *
 
 ---
 
-## 五、Skills 一览
+## 六、Skills 一览
 
 | Skill | 作用 | 关键产出 |
 |-------|------|----------|
@@ -351,7 +398,7 @@ triage 完（这条 bug 决定 Accepted），再问 `/trio:next` → 路由到 *
 | `/trio:subsprint-sync` | 子冲刺收尾（文档 + TC） | 在 `docs/` 内联改动、TC patch / 新增 + 翻 `Update Docs` 和 `Update Test Case` |
 | `/trio:next` | 下一步建议（只读、只推荐） | 控制台优先级建议 |
 
-## 六、Agents 一览
+## 七、Agents 一览
 
 | Agent | 作用 |
 |-------|------|
@@ -370,7 +417,7 @@ triage 完（这条 bug 决定 Accepted），再问 `/trio:next` → 路由到 *
 
 ---
 
-## 七、快速开始
+## 八、快速开始
 
 ### 安装
 
@@ -427,7 +474,7 @@ triage 完（这条 bug 决定 Accepted），再问 `/trio:next` → 路由到 *
 
 ---
 
-## 八、目录布局
+## 九、目录布局
 
 ```
 你的项目/
@@ -456,7 +503,7 @@ triage 完（这条 bug 决定 Accepted），再问 `/trio:next` → 路由到 *
 
 ---
 
-## 九、设计原则总结
+## 十、设计原则总结
 
 - **Plan, run, sync 三段分离。** 不让规划阶段偷偷动代码，不让执行阶段偷偷加用例。每段责任单一。
 - **契约文件 > 自由文本。** 关键流转点都是固定文件名 + 固定 schema；想改先升 schema 版本。

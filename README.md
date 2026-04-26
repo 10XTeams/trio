@@ -210,14 +210,28 @@ Trio 把项目分成三个并行追踪的桶：
 
 ### 安装
 
-把这个仓库当作一个 Claude Code marketplace 注册即可——`.claude-plugin/marketplace.json` 已经把 `./src-plugin` 注册成插件源，无需构建：
+在 Claude Code 终端里依次跑：
 
-```bash
-git clone https://github.com/10XTeams/trio.git
-# 然后在 Claude Code 里把这个仓库目录加成 marketplace
+```
+/plugin marketplace add https://github.com/10XTeams/trio
+/plugin install trio@trio
 ```
 
-加完之后 reload，`/trio:*` 命令就出现了。
+> 注意：直接用 `/plugin marketplace add 10XTeams/trio` 简写形式 Claude Code 会按 SSH 解析（`git@github.com:...`），如果你这台机器没配过 GitHub SSH key 就会失败。**显式给完整 HTTPS URL 最稳。**
+
+第二步里的两个 `trio` 不是写错——左边是 plugin 名，右边是 marketplace 名，本仓库恰好同名。
+
+验证：
+
+- `/plugin` 进交互菜单，切到 **Installed** 标签页能看到 `trio`
+- 或者 `/help`，看 `/trio:*` 命令是否出现
+
+更新 / 卸载：
+
+```
+/plugin marketplace update trio
+/plugin uninstall trio@trio
+```
 
 ### 最短路径示例
 

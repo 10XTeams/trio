@@ -138,6 +138,31 @@ Trio — 下一步建议（当前时间 2026-04-26）
   [B] /trio:test-management —— 现在 332 TCs 全是 BLOCKED，没意义
 ```
 
+另一种典型起点——刚跑完 `/trio:init-project`，PRD/TDD/TC 全空、URS 也没准备，再问 `/trio:next`：
+
+```
+Trio — 下一步建议（当前时间 2026-04-26）
+
+最近状态：
+  - code/ 源文件数：0（目录尚未创建）→ P0 基建分支不触发
+  - URS：不存在
+  - PRD-Overview：缺失
+  - PRD / TDD / Test-Case 模块数：0 / 0 / 0
+  - tech-stack.md：已存在 ✓
+  - 最新测试报告：无（docs/Test-Report/ 为空）→ P0.5 / P1 N/A
+  - 最新 subsprint：无 → 无进行中工作
+  - URS vs PRD Gap Check：N/A（URS 不存在）
+
+主建议：先准备 PRD 的输入材料
+  项目刚完成 bootstrap，三大支柱（PRD/TDD/Test-Case）全空，且既无 URS
+  也无 code/。Trio 决策树的所有 P0–P3 分支都不会触发——它们都需要至少
+  有 URS 或 code/ 作为输入。
+  → 推荐做法：先放一份用户需求说明（URS）进 docs/，再跑 /trio:prd-management
+    启动 PRD-Overview 撰写。
+```
+
+注意 `/trio:next` 在这种"什么都没有"的状态下不会硬塞一个跑不通的 skill 给你——它会**讲清楚为什么各分支都不触发**，然后指向真正的前置条件（这里是补 URS）。
+
 `/trio:next` **从不替你按 enter**——它只读、只建议，按下面这张路由表挑分支：
 
 | 你看到的状态 | `/trio:next` 通常会推 |
